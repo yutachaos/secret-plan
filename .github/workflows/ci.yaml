@@ -16,9 +16,9 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
-      - uses: golangci/golangci-lint-action@v1
+            ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
+      - uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.27
+          version: v1.32
       - name: Execute test
         run: make test
