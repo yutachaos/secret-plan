@@ -1,7 +1,7 @@
 .PHONY: test
 
 build:
-	go build -o secret-plan ./cmd/secret_plan/main.go
+	go build -o secret-plan ./cmd/secret-plan/main.go
 
 test:
 	go test -v ./...

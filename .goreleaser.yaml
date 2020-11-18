@@ -4,7 +4,7 @@ release:
     name: secret-plan
   name_template: '{{.Tag}}'
 builds:
-- main: ./cmd/secret_plan/main.go
+- main: ./cmd/secret-plan/main.go
   binary: secret-plan
   goos:
     - windows
