@@ -129,10 +129,10 @@ func approve() bool {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for scanner.Scan() {
-		if scanner.Text() == "yes" {
-			return true
+		if scanner.Text() != "yes" {
+			return false
 		}
 	}
 
-	return false
+	return true
 }
