@@ -1,7 +1,7 @@
 package secret
 
 type Secret interface {
-	Plan(name string, content string, versionId string) (secretExist bool, err error)
+	Get(name string, versionId string) (currentSecret string, secretExist bool, err error)
 	Save(name string, content string, versionId string, secretExist bool) (err error)
 }
 

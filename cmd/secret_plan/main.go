@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/urfave/cli/v2"
 	"github.com/yutachaos/secret-plan/internal/secret"
 	"io/ioutil"
@@ -71,17 +72,18 @@ func Run(ctx *cli.Context) (err error) {
 	}
 	versionId := ctx.String("version-id")
 
-	secret := secret.NewSecret()
+	sec := secret.NewSecret()
 
-	secretExist, err := secret.Plan(secretName, secretValue, versionId)
+	currentSecret, secretExist, err := sec.Get(secretName, versionId)
 	if err != nil {
 		return err
 	}
-
-	approved := approve()
-
-	if approved {
-		err := secret.Save(secretName, secretValue, versionId, secretExist)
+	if !diff(secretName, currentSecret, secretValue) {
+		fmt.Println("No change.")
+		return nil
+	}
+	if approve() {
+		err := sec.Save(secretName, secretValue, versionId, secretExist)
 		if err != nil {
 			return err
 		}
@@ -89,6 +91,20 @@ func Run(ctx *cli.Context) (err error) {
 		fmt.Print("No Updated.")
 	}
 	return nil
+}
+
+func diff(secretName string, currentSecretValue string, secretValue string) (diff bool) {
+	if currentSecretValue == secretValue {
+		return false
+	}
+	dmp := diffmatchpatch.New()
+
+	fmt.Printf("name: %s \n", secretName)
+	diffs := dmp.DiffMain(currentSecretValue, secretValue, true)
+	fmt.Println("------------------------------------------------------------------------")
+	fmt.Println(dmp.DiffPrettyText(diffs))
+	fmt.Println("------------------------------------------------------------------------")
+	return true
 }
 
 func approve() bool {
