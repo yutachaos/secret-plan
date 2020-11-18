@@ -2,6 +2,7 @@ package secret
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/secretsmanager/secretsmanageriface"
@@ -17,23 +18,23 @@ func newAws() *aws {
 	}
 
 	sess, err := session.NewSessionWithOptions(opts)
-
 	if err != nil {
 		panic(err)
 	}
+
 	client := secretsmanager.New(sess)
+
 	return &aws{
 		client: client,
 	}
-
 }
 
-func (a *aws) Get(name string, versionId string) (currentSecret string, secretExist bool, err error) {
+func (a *aws) Get(name string, versionID string) (currentSecret string, secretExist bool, err error) {
 	input := secretsmanager.GetSecretValueInput{
 		SecretId: &name,
 	}
-	if versionId != "" {
-		input.VersionId = &versionId
+	if versionID != "" {
+		input.VersionId = &versionID
 	}
 
 	_, err = a.client.DescribeSecret(&secretsmanager.DescribeSecretInput{
@@ -41,10 +42,12 @@ func (a *aws) Get(name string, versionId string) (currentSecret string, secretEx
 	})
 
 	secretExist = true
+
 	if err != nil {
 		switch err.(type) {
 		case *secretsmanager.ResourceNotFoundException:
 			secretExist = false
+
 			break
 		default:
 			return "", secretExist, err
@@ -52,6 +55,7 @@ func (a *aws) Get(name string, versionId string) (currentSecret string, secretEx
 	}
 
 	var currentSecretValue string
+
 	if secretExist {
 		secretValueOutput, err := a.client.GetSecretValue(&input)
 		if err != nil {
@@ -65,26 +69,28 @@ func (a *aws) Get(name string, versionId string) (currentSecret string, secretEx
 			currentSecretValue = *secretValueOutput.SecretString
 		}
 	}
-	return currentSecretValue, secretExist, nil
 
+	return currentSecretValue, secretExist, nil
 }
 
-func (a *aws) Save(name string, content string, versionId string, secretExist bool) (err error) {
+func (a *aws) Save(name string, content string, secretExist bool) (err error) {
 	if secretExist {
 		output, err := a.client.PutSecretValue(&secretsmanager.PutSecretValueInput{SecretId: &name, SecretString: &content})
 		if err != nil {
 			return err
 		}
-		versionId = *output.VersionId
-		fmt.Printf("Update. Version: %s \n", versionId)
-	} else {
 
+		versionID := *output.VersionId
+		fmt.Printf("Update. Version: %s \n", versionID)
+	} else {
 		output, err := a.client.CreateSecret(&secretsmanager.CreateSecretInput{Name: &name, SecretString: &content})
 		if err != nil {
 			return err
 		}
-		versionId = *output.VersionId
-		fmt.Printf("Create. Version: %s \n", versionId)
+
+		versionID := *output.VersionId
+		fmt.Printf("Create. Version: %s \n", versionID)
 	}
+
 	return nil
 }

@@ -2,10 +2,11 @@ package secret
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/aws/aws-sdk-go/service/secretsmanager/secretsmanageriface"
 	"github.com/stretchr/testify/assert"
-	"testing"
 	"tideland.dev/go/audit/capture"
 )
 
@@ -21,6 +22,7 @@ type describeSecretOutput struct {
 	output *secretsmanager.DescribeSecretOutput
 	err    error
 }
+
 type getSecretValueOutput struct {
 	output *secretsmanager.GetSecretValueOutput
 	err    error
@@ -30,6 +32,7 @@ type putSecretValueOutput struct {
 	output *secretsmanager.PutSecretValueOutput
 	err    error
 }
+
 type createSecretOutput struct {
 	output *secretsmanager.CreateSecretOutput
 	err    error
@@ -50,11 +53,13 @@ func (f fakeAws) PutSecretValue(*secretsmanager.PutSecretValueInput) (output *se
 func (f fakeAws) CreateSecret(*secretsmanager.CreateSecretInput) (output *secretsmanager.CreateSecretOutput, err error) {
 	return f.fakeGetCreateSecret(output, err)
 }
-func TestGet(t *testing.T) {
 
-	var tests = []struct {
+func TestGet(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
 		secretName         string
-		versionId          string
+		versionID          string
 		mockDescribeSecret describeSecretOutput
 		mockGetSecretValue getSecretValueOutput
 		secretExist        bool
@@ -63,7 +68,7 @@ func TestGet(t *testing.T) {
 	}{
 		{
 			secretName: "name1",
-			versionId:  "",
+			versionID:  "",
 			mockDescribeSecret: describeSecretOutput{
 				output: &secretsmanager.DescribeSecretOutput{},
 				err:    nil,
@@ -78,7 +83,7 @@ func TestGet(t *testing.T) {
 		},
 		{
 			secretName: "name2",
-			versionId:  "",
+			versionID:  "",
 			mockDescribeSecret: describeSecretOutput{
 				output: &secretsmanager.DescribeSecretOutput{},
 				err:    &secretsmanager.ResourceNotFoundException{},
@@ -93,7 +98,7 @@ func TestGet(t *testing.T) {
 		},
 		{
 			secretName: "name3",
-			versionId:  "",
+			versionID:  "",
 			mockDescribeSecret: describeSecretOutput{
 				output: &secretsmanager.DescribeSecretOutput{},
 				err:    nil,
@@ -107,6 +112,7 @@ func TestGet(t *testing.T) {
 			currentSecret: "",
 		},
 	}
+
 	for _, test := range tests {
 		test := test
 		t.Run(fmt.Sprintf("Test Get: %s", test.secretName), func(t *testing.T) {
@@ -121,22 +127,21 @@ func TestGet(t *testing.T) {
 					},
 				},
 			}
-			currentSecret, secretExist, err := mockAws.Get(test.secretName, test.versionId)
+			currentSecret, secretExist, err := mockAws.Get(test.secretName, test.versionID)
 
 			assert.Equal(t, test.secretExist, secretExist)
 			assert.Equal(t, test.err, err)
 			assert.Equal(t, test.currentSecret, currentSecret)
 		})
 	}
-
 }
 
 func TestSave(t *testing.T) {
+	t.Parallel()
 
-	var tests = []struct {
+	tests := []struct {
 		secretName         string
 		secretValue        string
-		versionId          string
 		secretExist        bool
 		mockPutSecretValue putSecretValueOutput
 		mockCreateSecret   createSecretOutput
@@ -145,10 +150,9 @@ func TestSave(t *testing.T) {
 	}{
 		{
 			secretName:  "name1",
-			versionId:   "versionId",
 			secretExist: true,
 			mockPutSecretValue: putSecretValueOutput{
-				output: &secretsmanager.PutSecretValueOutput{VersionId: toStrPtr("updated versionId1")},
+				output: &secretsmanager.PutSecretValueOutput{VersionId: toStrPtr("updated versionID1")},
 				err:    nil,
 			},
 			mockCreateSecret: createSecretOutput{
@@ -156,14 +160,13 @@ func TestSave(t *testing.T) {
 				err:    nil,
 			},
 			err:    nil,
-			stdout: "Update. Version: updated versionId1 \n",
+			stdout: "Update. Version: updated versionID1 \n",
 		},
 		{
 			secretName:  "name2",
-			versionId:   "versionId",
 			secretExist: true,
 			mockPutSecretValue: putSecretValueOutput{
-				output: &secretsmanager.PutSecretValueOutput{VersionId: toStrPtr("updated versionId2")},
+				output: &secretsmanager.PutSecretValueOutput{VersionId: toStrPtr("updated versionID2")},
 				err:    nil,
 			},
 			mockCreateSecret: createSecretOutput{
@@ -171,39 +174,38 @@ func TestSave(t *testing.T) {
 				err:    nil,
 			},
 			err:    nil,
-			stdout: "Update. Version: updated versionId2 \n",
+			stdout: "Update. Version: updated versionID2 \n",
 		},
 		{
 			secretName:  "name3",
-			versionId:   "",
 			secretExist: false,
 			mockPutSecretValue: putSecretValueOutput{
 				output: &secretsmanager.PutSecretValueOutput{},
 				err:    nil,
 			},
 			mockCreateSecret: createSecretOutput{
-				output: &secretsmanager.CreateSecretOutput{VersionId: toStrPtr("updated versionId3")},
+				output: &secretsmanager.CreateSecretOutput{VersionId: toStrPtr("updated versionID3")},
 				err:    nil,
 			},
-			stdout: "Create. Version: updated versionId3 \n",
+			stdout: "Create. Version: updated versionID3 \n",
 			err:    nil,
 		},
 		{
 			secretName:  "name3",
-			versionId:   "",
 			secretExist: false,
 			mockPutSecretValue: putSecretValueOutput{
 				output: &secretsmanager.PutSecretValueOutput{},
 				err:    nil,
 			},
 			mockCreateSecret: createSecretOutput{
-				output: &secretsmanager.CreateSecretOutput{VersionId: toStrPtr("updated versionId3")},
+				output: &secretsmanager.CreateSecretOutput{VersionId: toStrPtr("updated versionID3")},
 				err:    &secretsmanager.InvalidRequestException{},
 			},
 			stdout: "",
 			err:    &secretsmanager.InvalidRequestException{},
 		},
 	}
+
 	for _, test := range tests {
 		test := test
 		t.Run(fmt.Sprintf("Test Save: %s", test.secretName), func(t *testing.T) {
@@ -220,14 +222,14 @@ func TestSave(t *testing.T) {
 			}
 			var err error
 			stdout := capture.Stdout(func() {
-				err = mockAws.Save(test.secretName, test.secretValue, test.versionId, test.secretExist)
+				err = mockAws.Save(test.secretName, test.secretValue, test.secretExist)
 			})
 			assert.Equal(t, test.err, err)
 			assert.Equal(t, test.stdout, stdout.String())
 		})
 	}
-
 }
+
 func toStrPtr(s string) *string {
 	return &s
 }

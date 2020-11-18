@@ -3,13 +3,16 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/sergi/go-diff/diffmatchpatch"
-	"github.com/urfave/cli/v2"
-	"github.com/yutachaos/secret-plan/internal/secret"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/sergi/go-diff/diffmatchpatch"
+	"github.com/urfave/cli/v2"
+	"github.com/yutachaos/secret-plan/internal/secret"
 )
+
+var version = "master"
 
 func main() {
 	app := NewApp()
@@ -20,13 +23,12 @@ func main() {
 	}
 }
 
-// NewApp is the factory method to return secret-plan
+// NewApp is the factory method to return secret-plan.
 func NewApp() *cli.App {
-
 	app := cli.NewApp()
 	app.Name = "secret-plan"
 	app.Usage = "For aws secretsmanager save,update,diff tool"
-	app.Version = "0.0.1"
+	app.Version = version
 	app.ArgsUsage = "target"
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
@@ -51,6 +53,7 @@ func NewApp() *cli.App {
 		},
 	}
 	app.Action = Run
+
 	return app
 }
 
@@ -68,28 +71,37 @@ func Run(ctx *cli.Context) (err error) {
 		defer f.Close()
 
 		b, err := ioutil.ReadAll(f)
+		if err != nil {
+			return err
+		}
+
 		secretValue = string(b)
 	}
-	versionId := ctx.String("version-id")
+
+	versionID := ctx.String("version-id")
 
 	sec := secret.NewSecret()
 
-	currentSecret, secretExist, err := sec.Get(secretName, versionId)
+	currentSecret, secretExist, err := sec.Get(secretName, versionID)
 	if err != nil {
 		return err
 	}
+
 	if !diff(secretName, currentSecret, secretValue) {
 		fmt.Println("No change.")
+
 		return nil
 	}
+
 	if approve() {
-		err := sec.Save(secretName, secretValue, versionId, secretExist)
+		err := sec.Save(secretName, secretValue, secretExist)
 		if err != nil {
 			return err
 		}
 	} else {
 		fmt.Print("No Updated.")
 	}
+
 	return nil
 }
 
@@ -97,25 +109,30 @@ func diff(secretName string, currentSecretValue string, secretValue string) (dif
 	if currentSecretValue == secretValue {
 		return false
 	}
+
 	dmp := diffmatchpatch.New()
 
 	fmt.Printf("name: %s \n", secretName)
+
 	diffs := dmp.DiffMain(currentSecretValue, secretValue, true)
+
 	fmt.Println("------------------------------------------------------------------------")
 	fmt.Println(dmp.DiffPrettyText(diffs))
 	fmt.Println("------------------------------------------------------------------------")
+
 	return true
 }
 
 func approve() bool {
 	fmt.Println("Apply? (yes/no)")
+
 	scanner := bufio.NewScanner(os.Stdin)
+
 	for scanner.Scan() {
 		if scanner.Text() == "yes" {
 			return true
-		} else {
-			break
 		}
 	}
+
 	return false
 }
