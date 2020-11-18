@@ -4,14 +4,31 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/sergi/go-diff/diffmatchpatch"
+	"github.com/aws/aws-sdk-go/service/secretsmanager/secretsmanageriface"
 )
 
 type aws struct {
-	client *secretsmanager.SecretsManager
+	client secretsmanageriface.SecretsManagerAPI
 }
 
-func (a aws) Plan(name string, content string, versionId string) (secretExist bool, err error) {
+func newAws() *aws {
+	opts := session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}
+
+	sess, err := session.NewSessionWithOptions(opts)
+
+	if err != nil {
+		panic(err)
+	}
+	client := secretsmanager.New(sess)
+	return &aws{
+		client: client,
+	}
+
+}
+
+func (a *aws) Get(name string, versionId string) (currentSecret string, secretExist bool, err error) {
 	input := secretsmanager.GetSecretValueInput{
 		SecretId: &name,
 	}
@@ -30,7 +47,7 @@ func (a aws) Plan(name string, content string, versionId string) (secretExist bo
 			secretExist = false
 			break
 		default:
-			return secretExist, err
+			return "", secretExist, err
 		}
 	}
 
@@ -42,28 +59,17 @@ func (a aws) Plan(name string, content string, versionId string) (secretExist bo
 			case *secretsmanager.ResourceNotFoundException:
 				break
 			default:
-				return secretExist, err
+				return "", secretExist, err
 			}
 		} else {
 			currentSecretValue = *secretValueOutput.SecretString
 		}
 	}
+	return currentSecretValue, secretExist, nil
 
-	if currentSecretValue == content {
-		fmt.Println("No change.")
-		return secretExist, nil
-	}
-	dmp := diffmatchpatch.New()
-
-	fmt.Printf("name: %s \n", name)
-	diffs := dmp.DiffMain(currentSecretValue, content, true)
-	fmt.Println("------------------------------------------------------------------------")
-	fmt.Println(dmp.DiffPrettyText(diffs))
-	fmt.Println("------------------------------------------------------------------------")
-	return secretExist, nil
 }
 
-func (a aws) Save(name string, content string, versionId string, secretExist bool) (err error) {
+func (a *aws) Save(name string, content string, versionId string, secretExist bool) (err error) {
 	if secretExist {
 		output, err := a.client.PutSecretValue(&secretsmanager.PutSecretValueInput{SecretId: &name, SecretString: &content})
 		if err != nil {
@@ -81,21 +87,4 @@ func (a aws) Save(name string, content string, versionId string, secretExist boo
 		fmt.Printf("Create. Version: %s \n", versionId)
 	}
 	return nil
-}
-
-func newAws() aws {
-	opts := session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}
-
-	sess, err := session.NewSessionWithOptions(opts)
-
-	if err != nil {
-		panic(err)
-	}
-	a := secretsmanager.New(sess)
-	return aws{
-		client: a,
-	}
-
 }

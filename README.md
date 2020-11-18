@@ -19,7 +19,7 @@ For secret value diff and save tool.(e.g aws secretsmanager)
 - The configuration from environment variables and requires an AWS authentication key
 
 ### Run
-- go run . /cmd/secret_plan/main.go --secret-name test/diff --secret-value "update secret"
+- go run ./cmd/secret_plan/main.go --secret-name test/diff --secret-value "update secret"
 
 ### Build
 - make build
