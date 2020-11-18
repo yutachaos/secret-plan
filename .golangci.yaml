@@ -1,0 +1,16 @@
+run:
+  tests: true
+linters:
+  enable-all: true
+  disable:
+    - gochecknoglobals
+    - goerr113
+    - maligned
+    - gochecknoinits
+    - funlen
+    - exhaustivestruct
+    - wrapcheck
+    - testpackage
+    - lll
+    - errorlint
+    - gosimple
