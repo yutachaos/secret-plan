@@ -1,4 +1,7 @@
 # secret-plan
+
+![CI](https://github.com/yutachaos/secret-plan/workflows/CI/badge.svg)
+
 For secret value diff and save tool.(e.g aws secretsmanager)
 
 ## Usage. 
