@@ -47,8 +47,13 @@ func NewApp() *cli.App {
 			Required: false,
 		},
 		&cli.BoolFlag{
+			Name:     "dry-run",
+			Usage:    "dry run",
+			Required: false,
+		},
+		&cli.BoolFlag{
 			Name:     "is-file",
-			Usage:    "Specify filepath or string",
+			Usage:    "If you want to use filepath, please enable this option.",
 			Required: false,
 		},
 	}
@@ -61,6 +66,7 @@ func NewApp() *cli.App {
 func Run(ctx *cli.Context) (err error) {
 	secretName := ctx.String("secret-name")
 	secretValue := ctx.String("secret-value")
+	dryRun := ctx.Bool("dry-run")
 	isFile := ctx.Bool("is-file")
 
 	if isFile {
@@ -93,14 +99,20 @@ func Run(ctx *cli.Context) (err error) {
 		return nil
 	}
 
+	if dryRun {
+		fmt.Println("Dry run.")
+
+		return nil
+	}
+
 	if approve() {
 		err := sec.Save(secretName, secretValue, secretExist)
 		if err != nil {
 			return err
 		}
-	} else {
-		fmt.Print("No Updated.")
 	}
+
+	fmt.Println("No Updated.")
 
 	return nil
 }
