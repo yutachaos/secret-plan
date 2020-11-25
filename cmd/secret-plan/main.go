@@ -101,14 +101,18 @@ func Run(ctx *cli.Context) (err error) {
 
 	if dryRun {
 		fmt.Println("Dry run.")
-	} else if approve() {
+
+		return nil
+	}
+
+	if approve() {
 		err := sec.Save(secretName, secretValue, secretExist)
 		if err != nil {
 			return err
 		}
-	} else {
-		fmt.Println("No Updated.")
 	}
+
+	fmt.Println("No Updated.")
 
 	return nil
 }
