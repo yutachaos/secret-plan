@@ -11,6 +11,8 @@ For secret value diff and save tool.(e.g aws secretsmanager)
    - Value to be registered in Secret
 - --version-id
    - Specify the version-id to be acquired (optional).
+- --dry-run
+   - If your want to use diff only. 
 - --is-file
    - When you specify a string or a file, or enable this flag, the file is recognized as a file path and read.
 
