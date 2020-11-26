@@ -46,6 +46,11 @@ func NewApp() *cli.App {
 			Usage:    "Whether to specify version-id",
 			Required: false,
 		},
+		&cli.StringFlag{
+			Name:     "version-stage",
+			Usage:    "Whether to specify version-stage(AWS only)",
+			Required: false,
+		},
 		&cli.BoolFlag{
 			Name:     "dry-run",
 			Usage:    "dry run",
@@ -86,9 +91,9 @@ func Run(ctx *cli.Context) (err error) {
 
 	versionID := ctx.String("version-id")
 
-	sec := secret.NewSecret()
+	sec := secret.NewSecret(ctx)
 
-	currentSecret, secretExist, err := sec.Get(secretName, versionID)
+	currentSecret, err := sec.Get(secretName, versionID)
 	if err != nil {
 		return err
 	}
@@ -106,13 +111,13 @@ func Run(ctx *cli.Context) (err error) {
 	}
 
 	if approve() {
-		err := sec.Save(secretName, secretValue, secretExist)
+		err := sec.Save(secretName, secretValue)
 		if err != nil {
 			return err
 		}
+	} else {
+		fmt.Println("No Updated.")
 	}
-
-	fmt.Println("No Updated.")
 
 	return nil
 }
@@ -143,6 +148,8 @@ func approve() bool {
 	for scanner.Scan() {
 		if scanner.Text() != "yes" {
 			return false
+		} else {
+			break
 		}
 	}
 

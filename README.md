@@ -11,6 +11,8 @@ For secret value diff and save tool.(e.g aws secretsmanager)
    - Value to be registered in Secret
 - --version-id
    - Specify the version-id to be acquired (optional).
+- --version-stage
+    - Whether to specify version-stage(AWS only)
 - --dry-run
    - If your want to use diff only. 
 - --is-file

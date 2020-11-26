@@ -1,12 +1,14 @@
 package secret
 
+import "github.com/urfave/cli/v2"
+
 type Secret interface {
-	Get(name string, versionID string) (currentSecret string, secretExist bool, err error)
-	Save(name string, content string, secretExist bool) (err error)
+	Get(name string, versionID string) (currentSecret string, err error)
+	Save(name string, content string) (err error)
 }
 
-func NewSecret() Secret {
-	secret := newAws()
+func NewSecret(ctx *cli.Context) Secret {
+	secret := newAws(ctx)
 
 	return secret
 }
