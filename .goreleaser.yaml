@@ -6,25 +6,49 @@ release:
 builds:
 - main: ./cmd/secret-plan/main.go
   binary: secret-plan
-  goos:
-    - windows
-    - darwin
+- goos:
     - linux
+    - darwin
+    - windows
   goarch:
     - amd64
-  env:
-    - CGO_ENABLED=0
-    - GO111MODULE=on
+    - "386"
+    - arm
+    - arm64
+  goarm:
+    - 7
   ldflags:
     - -s -w
     - "-X main.version={{.Version}}"
     - "-X main.commit={{.Commit}}"
-checksum:
-  name_template: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
-archives:
-  - format: zip
 snapshot:
   name_template: master
+archives:
+  - format: zip
+    name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    files:
+      - LICENSE*
+      - README*
+      - CHANGELOG*
+      - CREDITS
+nfpms:
+  - file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      amd64: 64-bit
+      386: 32-bit
+      arm: ARM
+      arm64: ARM64
+      darwin: macOS
+      linux: Tux
+    vendor: yutachaos
+    homepage: https://github.com/yutachaos/secret-plan
+    maintainer: Yuta Kimura <bumplive@gmail.com>
+    license: MIT
+    formats:
+      - deb
+      - rpm
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_checksums.txt'
 changelog:
   sort: asc
   filters:
