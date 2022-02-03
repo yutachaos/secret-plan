@@ -6,7 +6,7 @@ release:
 builds:
 - main: ./cmd/secret-plan/main.go
   binary: secret-plan
-- goos:
+  goos:
     - linux
     - darwin
     - windows
