@@ -29,8 +29,6 @@ archives:
     files:
       - LICENSE*
       - README*
-      - CHANGELOG*
-      - CREDITS
 nfpms:
   - file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     replacements:
