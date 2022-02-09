@@ -3,6 +3,20 @@ release:
     owner: yutachaos
     name: secret-plan
   name_template: '{{.Tag}}'
+brews:
+  - name: secret-plan
+    tap:
+      owner: yutachaos
+      name: homebrew-secret-plan
+    commit_author:
+      name: goreleaserbot
+      email: goreleaser@carlosbecker.com
+    description: "For secret value diff and save tool.(e.g aws secretsmanager)"
+    homepage: "https://github.com/yutachaos/secret-plan"
+    install: |
+      bin.install Dir['secret-plan']
+    test: |
+      system "#{bin}/secret-plan"
 builds:
 - main: ./cmd/secret-plan/main.go
   binary: secret-plan
