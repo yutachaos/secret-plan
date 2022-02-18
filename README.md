@@ -32,4 +32,7 @@ For secret value diff and save tool.(e.g aws secretsmanager)
 - make build
 
 ### test 
-- make test 
+- make test
+
+### Installation
+- brew install yutachaos/secret-plan/secret-plan
