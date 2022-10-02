@@ -16,3 +16,11 @@ linters:
     - gosimple
     - gci
     - golint
+    - exhaustruct
+    - nonamedreturns
+    - staticcheck
+    - varnamelen
+    - forbidigo
+    - ifshort
+    - ireturn
+    - revive
